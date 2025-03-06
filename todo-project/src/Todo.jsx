@@ -4,6 +4,8 @@ import 'bootstrap/dist/css/bootstrap.css';
 const TodoApp = () => {
   const [categories, setCategories] = useState([]);
   const [inputCat, setInputCat] = useState("");
+  const [editTodoId, setEditTodoId] = useState(null);
+  const [editCategoryId, setEditCategoryId] = useState(null);
 
   const addCategory = () => {
     if (!inputCat) return;
@@ -11,11 +13,30 @@ const TodoApp = () => {
     setInputCat("");
   };
 
+  const updateCategoryTitle = (categoryId, newTitle) => {
+    setCategories(categories.map(category =>
+      category.id === categoryId ? { ...category, title: newTitle } : category
+    ));
+  };
+
   const addTodo = (categoryId, todoText) => {
     if (!todoText) return;
     setCategories(categories.map(category =>
       category.id === categoryId
         ? { ...category, todos: [...category.todos, { id: Date.now(), text: todoText, completed: false }] }
+        : category
+    ));
+  };
+
+  const updateTodoText = (categoryId, todoId, newText) => {
+    setCategories(categories.map(category =>
+      category.id === categoryId
+        ? {
+            ...category,
+            todos: category.todos.map(todo =>
+              todo.id === todoId ? { ...todo, text: newText } : todo
+            )
+          }
         : category
     ));
   };
@@ -46,70 +67,97 @@ const TodoApp = () => {
   };
 
   return (
-<div
-  className="d-flex justify-content-center align-items-center bg-secondary text-white"
-  style={{ minHeight: "100vh", width: "100vw", padding: "20px", boxSizing: "border-box" }}
->
-  <div className="text-center">
-    <h5>To-Do Notes</h5>
+    <div
+      className="d-flex justify-content-center align-items-center bg-secondary text-white"
+      style={{ minHeight: "100vh", width: "100vw", padding: "20px", boxSizing: "border-box" }}
+    >
+      <div className="text-center">
+        <h5>To-Do Notes</h5>
 
-    <div className="mb-3">
-      <input
-        type="text"
-        value={inputCat}
-        placeholder="Add Ur ToDo Notes"
-        onChange={(e) => setInputCat(e.target.value)}
-      />
-      <button onClick={addCategory}>Add</button>
-    </div>
-
-    <div className="d-flex flex-wrap gap-3 justify-content-center">
-      {categories.map((category) => (
-        <div key={category.id} className="p-3 shadow-lg"
-          style={{
-            background: "linear-gradient(black, rgb(19, 5, 5))",
-            borderRadius: "12px",
-            minWidth: "300px",
-          }}
-        >
-          <h6>{category.title}</h6>
-
+        <div className="mb-3">
           <input
             type="text"
-            placeholder="Add Todo"
-            onKeyDown={(e) => {
-              if (e.key === "Enter") addTodo(category.id, e.target.value);
-            }}
+            value={inputCat}
+            placeholder="Add Ur ToDo Notes"
+            onChange={(e) => setInputCat(e.target.value)}
           />
-          <button onClick={() => deleteCategory(category.id)} style={{ marginBottom: "10px" }}>
-            ❌ 
-          </button>
-
-          <ul>
-            {category.todos.map((todo) => (
-              <li key={todo.id}>
-                <span
-                  onClick={() => toggleComplete(category.id, todo.id)}
-                  style={{
-                    textDecoration: todo.completed ? "line-through" : "none",
-                    cursor: "pointer",
-                  }}
-                >
-                  {todo.text}
-                </span>
-                <button onClick={() => deleteTodo(category.id, todo.id)} style={{ marginLeft: "10px" }}>
-                  ❌
-                </button>
-              </li>
-            ))}
-          </ul>
+          <button onClick={addCategory}>Add</button>
         </div>
-      ))}
-    </div>
-  </div>
-</div>
 
-  
+        <div className="d-flex flex-wrap gap-3 justify-content-center">
+          {categories.map((category) => (
+            <div key={category.id} className="p-3 shadow-lg"
+              style={{
+                background: "linear-gradient(black, rgb(19, 5, 5))",
+                borderRadius: "12px",
+                minWidth: "300px",
+              }}
+            >
+              <div className="d-flex justify-content-center align-items-center mb-3">
+                {editCategoryId === category.id ? (
+                  <input
+                    type="text"
+                    value={category.title}
+                    onChange={(e) => updateCategoryTitle(category.id, e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") setEditCategoryId(null);
+                    }}
+                    style={{ marginBottom: "10px" }}
+                  />
+                ) : (
+                  <h6 className="m-0">{category.title}</h6>
+                )}
+                <div className="ms-2">
+                  <button onClick={() => setEditCategoryId(category.id)}>✏️</button>
+                  <button onClick={() => deleteCategory(category.id)}>❌</button>
+                </div>
+              </div>
+
+              <input
+                type="text"
+                placeholder="Add Todo"
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" ) {
+                    addTodo(category.id, e.target.value);
+                    e.target.value = ""; 
+                  }                
+                }}
+              />
+
+              <ul>
+                {category.todos.map((todo) => (
+                  <li key={todo.id}>
+                    {editTodoId === todo.id ? (
+                      <input
+                        type="text"
+                        value={todo.text}
+                        onChange={(e) => updateTodoText(category.id, todo.id, e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") setEditTodoId(null);
+                        }}
+                      />
+                    ) : (
+                      <span
+                        onClick={() => toggleComplete(category.id, todo.id)}
+                        style={{
+                          textDecoration: todo.completed ? "line-through" : "none",
+                          color: todo.completed ? "red" : "white",
+                          cursor: "pointer",
+                        }}
+                      >
+                        {todo.text}
+                      </span>
+                    )}
+                    <button onClick={() => setEditTodoId(todo.id)}>✏️</button>
+                    <button onClick={() => deleteTodo(category.id, todo.id)}>❌</button>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
   );
 };
 
