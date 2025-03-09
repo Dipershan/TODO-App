@@ -4,13 +4,19 @@ const mongoose = require("mongoose");
 const cors =  require("cors");
 const app= express();
 const PORT = process.env.PORT || 7000;
-const todoRoutes = require("./routes/todo.route")
+const todoRoutes = require("./routes/todo.route");
+const router =  require("express").Router();
 
 
 app.use(express.json());
 app.use(cors());
 
-app.use("/api/v1" ,todoRoutes)
+app.use("/api" ,todoRoutes);
+app.get("/api", (req, res) => {
+    res.json({ message: "Welcome To Application" });
+  });
+  
+
 
 mongoose.connect(process.env.MONGO_URL)
 .then(()=>{console.log("MongoDB Connected Successfully")})

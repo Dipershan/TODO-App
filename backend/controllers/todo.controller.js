@@ -10,34 +10,74 @@ const getTodos  =  async (req, res)=>{
     }
 };
 
+
+const addCategory =  async(req,res)=>{
+    try {
+        const {title} =  req.body;
+        const newCategory =  new Todo({title , todos: []});
+        await newCategory.save();
+        res.json(newCategory);
+    } catch (error) {
+        res.status(500).send({message: "Error Creating Todo"})
+        console.log(error)
+    }
+};
 const addTodo = async(req, res) =>{
     try {
-        const newTodo  = new Todo(req.body);
-        await newTodo.save();
-        res.json(newTodo);
+        const {categoryId , text} = req.body;
+        const category = await Todo.findById(categoryId);
+        if(!category)return res.send({message: "Category not found"});
+
+        category.todos.push({text});
+        await category.save();        
+        res.json(category);
     } catch (error) {
-        res.send({message: "Error Creating Todo"})
+        res.send({message: "Error Adding Todo"})
         console.log(error)        
     }
 }
-const updateTodo  = async (req, res) =>{
+
+const toggleTodo = async (req,res)=>{
     try {
-        const updatedTodo = await Todo.findByIdAndUpdate(req.params.id ,  req.body, {new: true});
-        if(!updatedTodo) return res.send({message: "Todo not found"});
-        res.json(updatedTodo);
+        const {categoryId , todoId} =   req.params;
+        const category = await Todo.findById(categoryId);
+        if(!category)return res.send({message: "Category not found"});
+
+        const todo = category.todos.id(todoId);
+        if(!todo) return res.send({messaga: "Todo not found"});
+
+        todo.completed = !todo.completed;
+        await category.save();
+        res.json(category);
+
     } catch (error) {
-        console.log(error)
+        res.send({message: "Error toggling Todo"})
+        console.log(error) 
     }
 }
 
 const deleteTodo =  async(req,res)=>{
     try {
-        const deletedTodo =  await Todo.findByIdAndDelete(req.params.id);
-        if(!deleteTodo) return res.send({message: "Error Deleting Todo"});
-        res.json({ message: 'Todo deleted successfully' });
+     const {categoryId , todoId} =  req.body;
+     const category =  await Todo.findById(categoryId);
+     if(!category) return res.send({message: "Catgory not found"});
+
+     category.todos.pull(todoId);
+     await category.save();
+     res.json(category);
     } catch (error) {
         res.send({messgae: "Error deleting todo"});
     }
 }
 
-module.exports = {getTodos , addTodo ,  updateTodo , deleteTodo}
+const deleteCategory =async (req,res)=>{
+    try {
+        await Todo.findByIdAndDelete(req.params.id);
+        res.json({message: "Category deleted"})
+    } catch (error) {
+        res.send({messgae: "Error deleting category"});
+    }
+}
+
+module.exports = {getTodos ,addCategory, addTodo ,toggleTodo,
+     deleteTodo ,deleteCategory}
