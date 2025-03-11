@@ -37,7 +37,10 @@ const TodoApp = () => {
     if (!todoText) return;
     try {
       const { data } = await axios.post(`${API_BASE_URL}/todos`, { categoryId, text: todoText });
-      setCategories(categories.map(category => category._id === data._id ? data : category));
+      // this.fetchCategories();
+      setCategories(categories.map(category => category._id === data._id 
+         ? { ...category, todos: [...category.todos, data.todos[data.todos.length - 1]] }  
+         : category));
     } catch (error) {
       console.error("Error adding todo:", error);
     }
@@ -69,7 +72,9 @@ const TodoApp = () => {
 
   const deleteCategory = async (categoryId) => {
     try {
-      await axios.delete(`${API_BASE_URL}/category/${categoryId}`);
+      await axios.delete(`${API_BASE_URL}/category/${categoryId}`,{
+        data: {categoryId}
+      });
       setCategories(categories.filter(category => category._id !== categoryId));
     } catch (error) {
       console.error("Error deleting category:", error);

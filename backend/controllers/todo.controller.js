@@ -24,6 +24,7 @@ const addCategory =  async(req,res)=>{
 };
 const addTodo = async(req, res) =>{
     try {
+        // throw new Error
         const {categoryId , text} = req.body;
         const category = await Todo.findById(categoryId);
         if(!category)return res.send({message: "Category not found"});
@@ -72,8 +73,14 @@ const deleteTodo =  async(req,res)=>{
 
 const deleteCategory =async (req,res)=>{
     try {
-        await Todo.findByIdAndDelete(req.params.id);
-        res.json({message: "Category deleted"})
+        const {categoryId} =  req.body;
+        const category = await Todo.findById(categoryId);
+        console.log(category);
+        const deletedCategory = await Todo.findByIdAndDelete(categoryId);
+        if (!deletedCategory) {
+            return res.json({ message: "Category not found" });
+        }
+        res.json({ message: "Category deleted" });
     } catch (error) {
         res.send({messgae: "Error deleting category"});
     }
