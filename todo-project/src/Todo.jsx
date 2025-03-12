@@ -37,7 +37,6 @@ const TodoApp = () => {
     if (!todoText) return;
     try {
       const { data } = await axios.post(`${API_BASE_URL}/todos`, { categoryId, text: todoText });
-      // this.fetchCategories();
       setCategories(categories.map(category => category._id === data._id 
          ? { ...category, todos: [...category.todos, data.todos[data.todos.length - 1]] }  
          : category));

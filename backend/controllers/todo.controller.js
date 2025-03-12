@@ -29,6 +29,11 @@ const addTodo = async(req, res) =>{
         const category = await Todo.findById(categoryId);
         if(!category)return res.send({message: "Category not found"});
 
+        const isDuplicate = category.todos.some(todo => todo.text.toLowerCase() === text.toLowerCase());
+        if(isDuplicate){
+            return res.json({message: "Todo already exist"})
+        }
+
         category.todos.push({text});
         await category.save();        
         res.json(category);
