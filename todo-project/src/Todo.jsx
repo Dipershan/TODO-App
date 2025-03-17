@@ -10,15 +10,16 @@ const TodoApp = () => {
   const [editTodoId, setEditTodoId] = useState(null);
   const [editCategoryId, setEditCategoryId] = useState(null);
 
+  const fetchCategories = async () => {
+    try {
+      const { data } = await axios.get(`${API_BASE_URL}/todos`);
+      setCategories(data);
+    } catch (error) {
+      console.error("Error fetching categories:", error);
+    }
+  };
+
   useEffect(() => {
-    const fetchCategories = async () => {
-      try {
-        const { data } = await axios.get(`${API_BASE_URL}/todos`);
-        setCategories(data);
-      } catch (error) {
-        console.error("Error fetching categories:", error);
-      }
-    };
     fetchCategories();
   }, []);
 
@@ -26,7 +27,7 @@ const TodoApp = () => {
     if (!inputCat) return;
     try {
       const { data } = await axios.post(`${API_BASE_URL}/category`, { title: inputCat });
-      setCategories([...categories, data]);
+      setCategories(data);
       setInputCat("");
     } catch (error) {
       console.error("Error adding category:", error);
@@ -36,10 +37,11 @@ const TodoApp = () => {
   const addTodo = async (categoryId, todoText) => {
     if (!todoText) return;
     try {
-      const { data } = await axios.post(`${API_BASE_URL}/todos`, { categoryId, text: todoText });
-      setCategories(categories.map(category => category._id === data._id 
-         ? { ...category, todos: [...category.todos, data.todos[data.todos.length - 1]] }  
-         : category));
+      const { data } = await axios.post(`${API_BASE_URL}/todos`, { categoryId, text: todoText })
+      fetchCategories();
+      // setCategories(categories.map(category => category._id === data._id 
+      //    ? { ...category, todos: [...category.todos, data.todos[data.todos.length - 1]] }  
+      //    : category));
     } catch (error) {
       console.error("Error adding todo:", error);
     }

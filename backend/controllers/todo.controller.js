@@ -10,38 +10,46 @@ const getTodos  =  async (req, res)=>{
     }
 };
 
-
-const addCategory =  async(req,res)=>{
+const addCategory = async (req, res) => {
     try {
-        const {title} =  req.body;
-        const newCategory =  new Todo({title , todos: []});
+        const { title } = req.body;
+        const newCategory = new Todo({ title, todos: [], createdAt: new Date() });
         await newCategory.save();
-        res.json(newCategory);
+
+        const categories = await Todo.find().sort({ createdAt: -1 });
+
+        res.json(categories);
     } catch (error) {
-        res.status(500).send({message: "Error Creating Todo"})
-        console.log(error)
+        console.error(error);
+        res.status(500).json({ message: "Error Creating Todo" });
     }
 };
-const addTodo = async(req, res) =>{
+
+
+const addTodo = async (req, res) => {
     try {
-        // throw new Error
-        const {categoryId , text} = req.body;
+        const { categoryId, text } = req.body;
         const category = await Todo.findById(categoryId);
-        if(!category)return res.send({message: "Category not found"});
+
+        if (!category) return res.status(404).json({ message: "Category not found" });
 
         const isDuplicate = category.todos.some(todo => todo.text.toLowerCase() === text.toLowerCase());
-        if(isDuplicate){
-            return res.json({message: "Todo already exist"})
+        if (isDuplicate) {
+            return res.status(400).json({ message: "Todo already exists" });
         }
 
-        category.todos.push({text});
-        await category.save();        
+        category.todos.push({ text, createdAt: new Date() });
+
+        category.todos.sort((a, b) => b.createdAt - a.createdAt);
+
+        await category.save();
         res.json(category);
     } catch (error) {
-        res.send({message: "Error Adding Todo"})
-        console.log(error)        
+        console.error(error);
+        res.status(500).json({ message: "Error Adding Todo" });
     }
-}
+};
+
 
 const toggleTodo = async (req,res)=>{
     try {
